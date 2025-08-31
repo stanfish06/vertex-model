@@ -1,10 +1,11 @@
 #include "entity.h"
 
 Vertex* create_vertex(double x, double y) {
-    Vertex* v = malloc(sizeof(Vertex))
+    Vertex* v = malloc(sizeof(Vertex));
     if (!v) return NULL;
     v->x = x;
     v->y = y;
+    v->out = NULL;
     return v;
 }
 
@@ -12,6 +13,7 @@ Edge* create_edge(Vertex* v) {
     Edge* e = malloc(sizeof(Edge));
     e->root = v;
     v->out = e;
+    e->next = e->prev = e->cell = e->twin = NULL;
     return e;
 }
 
@@ -22,13 +24,18 @@ Cell* create_cell(int n_faces, double* xx, double* yy) {
     c->face = e0;
     e0->cell = c;
     Edge* e_prev = e0;
+    Edge* e;
     for (int i = 1; i < n_faces; i++) {
 	Vertex* v = create_vertex(xx[i], yy[i]);
-	Edge* e = create_edge(v);
+	e = create_edge(v);
 	e_prev->next = e;
 	e->prev = e_prev;
 	e->cell = c;
+	e_prev = e;
     }
+    e->next = e0;
+    e0->prev = e;
+
     return c;
 }
 
