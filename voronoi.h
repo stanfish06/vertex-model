@@ -6,12 +6,17 @@ typedef struct {
   double x, y;
 } Site;
 
+// To find y
+// (x - x1)^2 + (y - y1)^2 = (x - x2)^2 + (y - y2)^2
+// (2y - y1 - y2)(y2 - y1) = (2x - x1 - x2)(x1 - x2)
+// y = 0.5*[(2x - x1 - x2)(x1 - x2)/(y2 - y1) + (y1 + y2)]
 typedef struct {
-  // left and right seed points
+  // up and down seed points
   // use bisector equation to get boundary ray
-  Site *left;
-  Site *right;
-  // current position of the breakpoint
+  Site *up;
+  Site *down;
+  // initial position of the breakpoint
+  // upon disappearing, you can derive the equation for the boundary ray
   double x;
 } Breakpoint;
 
@@ -26,15 +31,9 @@ struct Node {
     Arc *arc;
     Breakpoint *breakpoint;
   } data;
-  Node *left;
-  Node *right;
+  Node *left; // left = up
+  Node *right; // right = down
 };
-
-typedef struct {
-  Node *root;
-  Site *sites;
-  int num_sites;
-} Voronoi;
 
 // event queue
 // two events:
@@ -59,4 +58,11 @@ struct Event {
 typedef struct {
   Event *first;
 } EventQueue;
+
+
+typedef struct {
+  Node *root;
+  Site *sites;
+  int num_sites;
+} Voronoi;
 #endif
