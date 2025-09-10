@@ -1,6 +1,8 @@
 #ifndef VORONOI_H
 #define VORONOI_H
 typedef struct Node Node;
+#include <stdbool.h>
+#include <stdlib.h>
 
 typedef struct {
   double x, y;
@@ -35,6 +37,9 @@ struct Node {
   Node *right; // right = down
 };
 
+void print_inorder(struct Node *node);
+Node *add_node(bool is_arc, Node *left, Node *right);
+
 // event queue
 // two events:
 // add parabola
@@ -55,6 +60,9 @@ struct Event {
   } data;
   Event *next;
 };
+
+int make_event(Event *e, double x, int type, Site *site, Arc *arc, double vertex_x, double vertex_y);
+
 typedef struct {
   Event *first;
 } EventQueue;

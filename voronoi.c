@@ -2,6 +2,15 @@
 #include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stdio.h>
+
+void print_inorder(struct Node *node) {
+    if (!node) return;
+    print_inorder(node->left);
+    if (node->is_arc) printf("Arc of the site at (%f, %f)\n", node->data.arc->site->x, node->data.arc->site->y);
+    if (!node->is_arc) printf("Breakpoint between up (%f, %f) and down (%f, %f) \n", node->data.breakpoint->up->x, node->data.breakpoint->up->y, node->data.breakpoint->down->x, node->data.breakpoint->down->y);
+    print_inorder(node->right);
+}
 
 int make_event(Event *e, double x, int type, Site *site, Arc *arc,
                double vertex_x, double vertex_y) {
@@ -65,21 +74,21 @@ Node *add_node(bool is_arc, Node *left, Node *right) {
   Node *n = malloc(sizeof(Node));
   if (is_arc) {
     Arc *data = malloc(sizeof(Arc));
+    Site *s = malloc(sizeof(Site));
     n->data.arc = data;
+    n->data.arc->site = s;
   } else {
+    Site *s_up = malloc(sizeof(Site));
+    Site *s_down = malloc(sizeof(Site));
     Breakpoint *data = malloc(sizeof(Breakpoint));
     n->data.breakpoint = data;
+    n->data.breakpoint->up = s_up;
+    n->data.breakpoint->down = s_down;
   }
   n->is_arc = is_arc;
   n->left = left;
   n->right = right;
 
-  if (left != NULL) {
-    left->right = n;
-  }
-  if (right != NULL) {
-    right->left = n;
-  }
   return n;
 }
 
@@ -149,6 +158,22 @@ Edge *find_arc_left(Voronoi *v, double y, double sweep_line_x) {
   return edge;
 }
 
+// steps:
+// 1. do in-order traversal
+//    - no need for full traversal (not sure what do check for now)
+// 2. for each three adjacent arcs, compute their circumcircle
+// 3. if exists, then find right most position of the cirlce
+// 4. add circle event to queue for that position
+//    - check pror circle events invovling the arc that will be deleted
+// 5. process that event:
+//    - remove middle arc
+//    - merge two breakpoints
+//    - store that voronoi vertex
+// 6. recheck circle events after processing
+Event *check_cycle(Voronoi *v) {
+  return NULL;
+}
+
 void process_event(Voronoi *v, Event *e) {
   int type = e->type;
   Site *site = e->data.site_event.site;
@@ -175,7 +200,6 @@ void process_event(Voronoi *v, Event *e) {
     // for now) intersects with the left arc. not super sure if this is going to
     // work.
     double px = calculate_breakpoint_x(arc_node->data.arc->site, site, x);
-    // slightly deviate two break points
     Breakpoint *p1 = malloc(sizeof(Breakpoint));
     Breakpoint *p2 = malloc(sizeof(Breakpoint));
     double p12x = px;
