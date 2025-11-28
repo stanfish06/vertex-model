@@ -37,6 +37,10 @@ struct Node {
   Node *right; // right = down
 };
 
+typedef struct {
+  double cx, cy, r;
+} Circle;
+
 void print_inorder(struct Node *node);
 Node *add_node(bool is_arc, Node *left, Node *right);
 

@@ -164,19 +164,97 @@ Edge *find_arc_left(Voronoi *v, double y, double sweep_line_x) {
   return edge;
 }
 
-// steps:
-// 1. do in-order traversal
-//    - no need for full traversal (not sure what do check for now)
-// 2. for each three adjacent arcs, compute their circumcircle
-// 3. if exists, then find right most position of the cirlce
-// 4. add circle event to queue for that position
-//    - check pror circle events invovling the arc that will be deleted
-// 5. process that event:
-//    - remove middle arc
-//    - merge two breakpoints
-//    - store that voronoi vertex
-// 6. recheck circle events after processing
-Event *check_cycle(Voronoi *v) { return NULL; }
+Circle *compute_circumcircle(Site *p1, Site *p2, Site *p3) {
+  Circle *c = malloc(sizeof(Circle));
+  double x1 = p1->x;
+  double y1 = p1->y;
+  double x2 = p2->x;
+  double y2 = p2->y;
+  double x3 = p3->x;
+  double y3 = p3->y;
+
+  // midpoint between p1 and p2
+  double m1x = (x1 + x2) / 2;
+  double m1y = (y1 + y2) / 2;
+  // midpoint between p2 and p3
+  double m2x = (x2 + x3) / 2;
+  double m2y = (y2 + y3) / 2;
+
+  // slope between p1 and p2
+  double s1 = (y2 - y1) / (x2 - x1);
+  // slope between p2 and p3
+  double s2 = (y3 - y2) / (x3 - x2);
+
+  // solve m1y - 1/s1(x-m1x) = m2y - 1/s2(x-m2x) -> x = (m2y - m1y + m2x/s2 -
+  // m1x/s1)/(1/s2 - 1/s1)
+  double cx = (m2y - m1y + m2x / s2 - m1x / s1) / (1 / s2 - 1 / s1);
+  double cy = m1y - 1 / s1 * (cx - m1x);
+  double r = sqrt(pow(x1 - cx, 2) + pow(y1 - cy, 2));
+  c->cx = cx;
+  c->cy = cy;
+  c->r = r;
+  return c;
+}
+
+/*
+ * after adding a new site, check two incident triplets to see if breakpoints
+will merge:
+ * 1. for each triplet, find circumcircle
+ * 2. since my sweep line sweeps from left to right, check if the right most
+point of the circle is on the left side of the sweep line
+ * 3. if so, add circle event to queue
+ */
+void check_circle_after_site_event(Node *n) {
+  Node *ptr = n;
+  Site *p1 = (*n).data.arc->site;
+  Site *p2 = NULL;
+  Site *p3 = NULL;
+  // up triplet
+  ptr = ptr->left;
+  while ((p2 == NULL || p3 == NULL) && ptr != NULL) {
+    if (ptr->is_arc) {
+      if (p2 == NULL) {
+        p2 = (*ptr).data.arc->site;
+      } else {
+        p3 = (*ptr).data.arc->site;
+      }
+    }
+    ptr = ptr->left;
+  }
+  Circle *c = compute_circumcircle(p1, p2, p3);
+  // current position of sweep line is just the newly added node
+  if (c->cx + c->r > p1->x) {
+    // add circle event
+  }
+  free(c);
+
+  // down triplet
+  p2 = NULL;
+  p3 = NULL;
+  ptr = ptr->right;
+  while ((p2 == NULL || p3 == NULL) && ptr != NULL) {
+    if (ptr->is_arc) {
+      if (p2 == NULL) {
+        p2 = (*ptr).data.arc->site;
+      } else {
+        p3 = (*ptr).data.arc->site;
+      }
+    }
+    ptr = ptr->right;
+  }
+  c = compute_circumcircle(p1, p2, p3);
+  // current position of sweep line is just the newly added node
+  if (c->cx + c->r > p1->x) {
+    // add circle event
+  }
+}
+
+/*
+ * implement this as well
+ * the position of sweep line is just the right most x of the circumcircle as it
+ * is tangent to that
+ */
+void check_circle_after_circle_event(Node *n) {}
 
 void process_event(Voronoi *v, Event *e) {
   int type = e->type;
@@ -282,6 +360,7 @@ Voronoi *generate_voronoi(int n, double *xx, double *yy) {
   while (eq->first != NULL) {
     Event *e = pop_event(eq);
     process_event(v, e);
+    // TODO: need to free data as well
     free(e);
   }
   free(eq);
