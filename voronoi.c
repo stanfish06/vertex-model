@@ -1,15 +1,21 @@
 #include "voronoi.h"
 #include <math.h>
 #include <stdbool.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 void print_inorder(struct Node *node) {
-    if (!node) return;
-    print_inorder(node->left);
-    if (node->is_arc) printf("Arc of the site at (%f, %f)\n", node->data.arc->site->x, node->data.arc->site->y);
-    if (!node->is_arc) printf("Breakpoint between up (%f, %f) and down (%f, %f) \n", node->data.breakpoint->up->x, node->data.breakpoint->up->y, node->data.breakpoint->down->x, node->data.breakpoint->down->y);
-    print_inorder(node->right);
+  if (!node)
+    return;
+  print_inorder(node->left);
+  if (node->is_arc)
+    printf("Arc of the site at (%f, %f)\n", node->data.arc->site->x,
+           node->data.arc->site->y);
+  if (!node->is_arc)
+    printf("Breakpoint between up (%f, %f) and down (%f, %f) \n",
+           node->data.breakpoint->up->x, node->data.breakpoint->up->y,
+           node->data.breakpoint->down->x, node->data.breakpoint->down->y);
+  print_inorder(node->right);
 }
 
 int make_event(Event *e, double x, int type, Site *site, Arc *arc,
@@ -170,9 +176,7 @@ Edge *find_arc_left(Voronoi *v, double y, double sweep_line_x) {
 //    - merge two breakpoints
 //    - store that voronoi vertex
 // 6. recheck circle events after processing
-Event *check_cycle(Voronoi *v) {
-  return NULL;
-}
+Event *check_cycle(Voronoi *v) { return NULL; }
 
 void process_event(Voronoi *v, Event *e) {
   int type = e->type;
@@ -247,12 +251,16 @@ void process_event(Voronoi *v, Event *e) {
   }
 }
 
+/* ------------------------------
+ * sweep from left to right
+ * - site events should be added first
+ * - circle events added in the main loop
+ * ------------------------------ */
 Voronoi *generate_voronoi(int n, double *xx, double *yy) {
   Site *sites = malloc(sizeof(Site) * n);
   EventQueue *eq = malloc(sizeof(EventQueue));
   Voronoi *v = malloc(sizeof(Voronoi));
 
-  // sweep line will move from left to right
   // sites with minimal x-coordinates will be added first (ordered by y)
   for (int i = 0; i < n; i++) {
     double x = xx[i];

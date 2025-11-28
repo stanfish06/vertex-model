@@ -33,7 +33,7 @@ struct Node {
     Arc *arc;
     Breakpoint *breakpoint;
   } data;
-  Node *left; // left = up
+  Node *left;  // left = up
   Node *right; // right = down
 };
 
@@ -61,16 +61,21 @@ struct Event {
   Event *next;
 };
 
-int make_event(Event *e, double x, int type, Site *site, Arc *arc, double vertex_x, double vertex_y);
-
 typedef struct {
   Event *first;
 } EventQueue;
-
 
 typedef struct {
   Node *root;
   Site *sites;
   int num_sites;
 } Voronoi;
+
+int make_event(Event *e, double x, int type, Site *site, Arc *arc,
+               double vertex_x, double vertex_y);
+
+int add_event(EventQueue *eq, Event *e);
+
+Event *pop_event(EventQueue *eq);
+
 #endif
